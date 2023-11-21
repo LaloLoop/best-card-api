@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/gosimple/slug"
 	"github.com/laloloop/best-card-api/pkg/creditcard"
-	"io"
-	"log"
 	"net/http"
 	"regexp"
 )
@@ -49,44 +45,14 @@ func NewCreditCardsHandler(s creditCardStore) *CreditCardsHandler {
 }
 
 func (h *CreditCardsHandler) CreateCreditCard(w http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Printf("Body: %s\n", b)
-
-	r.Body = io.NopCloser(bytes.NewReader(b))
-
-	var dto creditcard.CreditCardDTO
-	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+	var cc creditcard.CreditCard
+	if err := json.NewDecoder(r.Body).Decode(&cc); err != nil {
 		InternalServerErrorHandler(w, r)
 		return
 	}
 
-	resourceID := slug.Make(dto.Name)
-
-	fmt.Printf("CC_DTO: %v\n", dto)
-
-  daysToPay, err := dto.DaysToPay.Int64()
-  if err != nil {
-    log.Printf("Failed to get DaysToPay from DTO: %v\n", err)
-    InternalServerErrorHandler(w, r)
-    return
-  }
-  
-  cutOffDay, err := dto.CutOffDay.Int64()
-  if err != nil {
-    log.Printf("Failed to get CutOffDay from DTO: %v\n", err)
-    InternalServerErrorHandler(w, r)
-    return
-  }
-
-  cc := creditcard.CreditCard {
-    Name: dto.Name,
-    DaysToPay: uint8(daysToPay),
-    CutOffDay: uint8(cutOffDay),
-  }
-
+	resourceID := slug.Make(cc.Name)
+ 
 	if err := h.store.Add(resourceID, cc); err != nil {
 		InternalServerErrorHandler(w, r)
 		return
