@@ -1,14 +1,21 @@
-package main
+package creditcard
 
 import (
   "time"
+  "encoding/json"
 )
+
+type CreditCardDTO struct {
+  Name string `json:"name"`
+  DaysToPay json.Number `json:"days-to-pay"`
+  CutOffDay json.Number `json:"cutoff-day"`
+}
 
 
 type CreditCard struct {
-  Name string `json:name`
-  DaysToPay uint8 `json:days-to-pay`
-  CutOffDay uint8 `json:cutoff-day`
+  Name string 
+  DaysToPay uint8
+  CutOffDay uint8
 }
 
 func NewCreditCardFromStatementInfo(name string, lastStatementDate time.Time, lastStatementPaymentDate time.Time) CreditCard {
