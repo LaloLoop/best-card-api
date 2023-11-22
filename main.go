@@ -72,7 +72,33 @@ func (h *CreditCardsHandler) ListCreditCards(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
 }
-func (cc *CreditCardsHandler) GetCreditCard(w http.ResponseWriter, r *http.Request)    {}
+func (h *CreditCardsHandler) GetCreditCard(w http.ResponseWriter, r *http.Request)    {
+  matches := CreditCardReWithID.FindStringSubmatch(r.URL.Path)
+
+  if len(matches) < 2 {
+    InternalServerErrorHandler(w, r)
+    return
+  }
+
+  cc, err := h.store.Get(matches[1])
+  if err != nil {
+    if err == creditcard.NotFoundErr {
+      NotFoundHandler(w, r)
+      return
+    }
+
+    InternalServerErrorHandler(w, r)
+  }
+
+  jsonBytes, err := json.Marshal(cc)
+  if err != nil {
+    InternalServerErrorHandler(w, r)
+    return
+  }
+
+  w.WriteHeader(http.StatusOK)
+  w.Write(jsonBytes)
+}
 func (cc *CreditCardsHandler) UpdateCreditCard(w http.ResponseWriter, r *http.Request) {}
 func (cc *CreditCardsHandler) DeleteCreditCard(w http.ResponseWriter, r *http.Request) {}
 
