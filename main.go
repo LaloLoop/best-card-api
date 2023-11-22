@@ -52,7 +52,7 @@ func (h *CreditCardsHandler) CreateCreditCard(w http.ResponseWriter, r *http.Req
 	}
 
 	resourceID := slug.Make(cc.Name)
- 
+
 	if err := h.store.Add(resourceID, cc); err != nil {
 		InternalServerErrorHandler(w, r)
 		return
