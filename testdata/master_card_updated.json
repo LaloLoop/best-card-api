@@ -1,0 +1,5 @@
+{
+  "name": "Master Card",
+  "days-to-pay": 12,
+  "cutoff-day": 30
+}

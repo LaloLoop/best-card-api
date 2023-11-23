@@ -59,4 +59,21 @@ func TestCreditCardHandlersCRUD_Integration(t *testing.T) {
   }
 
   assert.JSONEq(t, string(masterCard), string(data))
+
+  // UPDATE - change days in credit card
+  masterCardUpdated := readTestData(t, "master_card_updated.json")
+  masterCardUpdatedReader := bytes.NewReader(masterCardUpdated)
+  req = httptest.NewRequest(http.MethodPut, "/credit-cards/master-card", masterCardUpdatedReader)
+  w = httptest.NewRecorder()
+  creditCardsHandler.ServeHTTP(w, req)
+
+  res = w.Result()
+  defer res.Body.Close()
+  assert.Equal(t, 200, res.StatusCode)
+
+  updatedMasterCard, err := store.Get("master-card")
+  assert.NoError(t, err)
+
+  assert.Equal(t, int(updatedMasterCard.CutOffDay), 30)
+  assert.Equal(t, int(updatedMasterCard.DaysToPay), 12)
 }

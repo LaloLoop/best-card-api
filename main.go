@@ -99,7 +99,32 @@ func (h *CreditCardsHandler) GetCreditCard(w http.ResponseWriter, r *http.Reques
   w.WriteHeader(http.StatusOK)
   w.Write(jsonBytes)
 }
-func (cc *CreditCardsHandler) UpdateCreditCard(w http.ResponseWriter, r *http.Request) {}
+
+func (h *CreditCardsHandler) UpdateCreditCard(w http.ResponseWriter, r *http.Request) {
+  matches := CreditCardReWithID.FindStringSubmatch(r.URL.Path)
+  if len(matches) < 2 {
+    InternalServerErrorHandler(w, r)
+    return
+  }
+
+  var cc creditcard.CreditCard
+  if err := json.NewDecoder(r.Body).Decode(&cc); err != nil {
+    InternalServerErrorHandler(w, r)
+    return
+  }
+
+  if err := h.store.Update(matches[1], cc); err != nil {
+    if err == creditcard.NotFoundErr {
+      NotFoundHandler(w, r)
+      return
+    }
+    InternalServerErrorHandler(w, r)
+    return
+  }
+
+  w.WriteHeader(http.StatusOK)
+}
+
 func (cc *CreditCardsHandler) DeleteCreditCard(w http.ResponseWriter, r *http.Request) {}
 
 func (h *CreditCardsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +138,9 @@ func (h *CreditCardsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case r.Method == http.MethodGet && CreditCardReWithID.MatchString(r.URL.Path):
 		h.GetCreditCard(w, r)
 		return
+  case r.Method == http.MethodPut && CreditCardReWithID.MatchString(r.URL.Path):
+    h.UpdateCreditCard(w, r)
+    return
 	case r.Method == http.MethodDelete && CreditCardReWithID.MatchString(r.URL.Path):
 		h.DeleteCreditCard(w, r)
 		return
